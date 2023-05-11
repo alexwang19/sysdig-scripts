@@ -47,10 +47,10 @@ def retrieve_time_duration(time_duration):
 
 
 def retrieve_events(auth_header, url, ssl_verification, end_time, start_time, rule_names, cluster_name_contains_pattern):
-    if len(rule_names) == 0:
+    rules_list = rule_names.split(',')
+    if len(rules_list) == 1:
         rule_filter = f'ruleName="{rule_names}"'
     else:
-        rules_list = rule_names.split(',')
         rules = ""
         for rule in rules_list:
             rules += f'"{rule}",'
