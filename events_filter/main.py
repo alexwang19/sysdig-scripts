@@ -97,37 +97,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python3 vulnerability_exception.py --base-url us2.app.sysdig.com --api-token c1190019-2540-42f6-8647-d3a0131bed5e --rule_names "DB program spawned process" --cluster-name-contains-pattern test --time-duration 1440
-
-# # Get the current time in seconds since the epoch
-# current_time = time.time()
-
-# start_time = str(int(time.time() * 1000000000))
-
-# # Calculate the time 10 minutes ago
-# ten_minutes_ago = current_time - (10 * 60)
-
-# # Convert the timestamp to an integer
-# ten_minutes_ago_timestamp = str(int(ten_minutes_ago * 1000000000))
-
-# print("Current time: ", start_time)
-# print("Time 10 minutes ago: ", ten_minutes_ago_timestamp)
-
-# # SYSDIG API TOKEN
-# auth_token = 'c1190019-2540-42f6-8647-d3a0131bed5e'
-# auth_header = {'Authorization': 'Bearer ' + auth_token}
-# vulnerability_exception_default_list = "global"
-# # SYSDIG URL - INSERT APPROPRIATE SYSDIG URL POINTING TO CORRECT REGION
-# url = f'https://us2.app.sysdig.com/api/v1/secureEvents?from={ten_minutes_ago_timestamp}&to={start_time}&filter=ruleName="Container Run as Root User"andcontainer.image.repo contains "ng"'
-
-# # SSL VERIFICATION
-# ssl_verification_flag=False
-
-# response = requests.get(url, headers=auth_header, verify=ssl_verification_flag)
-
-# print(response.json())
-
-# 1683757393000000000
-# 1683756566728160000
-
 
