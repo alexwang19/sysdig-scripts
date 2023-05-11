@@ -35,7 +35,7 @@ def retrieve_time_duration(time_duration):
 
     end_time = str(int(time.time() * 1000000000))
 
-    # Calculate the time 10 minutes ago
+    # Calculate the time x minutes ago
     start_time = current_time - (time_duration * 60)
 
     # Convert the timestamp to an integer
