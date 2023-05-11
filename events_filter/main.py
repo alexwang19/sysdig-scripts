@@ -12,9 +12,9 @@ def retrieve_set_sysdig_params():
     parser.add_argument("--ssl-verification", dest='ssl_verification',
                         type=str, help="enabled or disabled for values. Default is disabled.")
     parser.add_argument("--rule-names", dest='rule_names',
-                        type=str, help='list of rule names comma delimited. e.g. "my rule one,my rule two, mynewrule"', required=True)
+                        type=str, help='list of rule names comma delimited. e.g. "my rule one,my rule two, mynewrule"')
     parser.add_argument("--cluster-name-contains-pattern", dest='cluster_name_contains_pattern',
-                        type=str, help="pattern to match on for k8s cluster. e.g. mycluster123", required=True)
+                        type=str, help="pattern to match on for k8s cluster. e.g. mycluster123")
     parser.add_argument("--time-duration", dest='time_duration',
                         type=int, help="enter int value for time duration to use for events. e.g 10 for 10minutes", required=True)
     parser.add_argument("--output-file", dest='output_file',
@@ -47,18 +47,30 @@ def retrieve_time_duration(time_duration):
 
 
 def retrieve_events(auth_header, url, ssl_verification, end_time, start_time, rule_names, cluster_name_contains_pattern):
-    rules_list = rule_names.split(',')
-    if len(rules_list) == 1:
-        rule_filter = f'ruleName="{rule_names}"'
-    else:
-        rules = ""
-        for rule in rules_list:
-            rules += f'"{rule}",'
-        rules = rules[:-1]
-        rule_filter = f'ruleName in ({rules})'
-    cluster_name_contains_pattern_filter = f'kubernetes.cluster.name contains "{cluster_name_contains_pattern}"'
+    event_filters = ""
+    if rule_names is not None:
+        rules_list = rule_names.split(',')
+        if len(rules_list) == 1:
+            rule_filter = f'ruleName="{rule_names}"'
+        else:
+            rules = ""
+            for rule in rules_list:
+                rules += f'"{rule}",'
+            rules = rules[:-1]
+            rule_filter = f'ruleName in ({rules})'
+        event_filters += rule_filter
+    if cluster_name_contains_pattern is not None:
+        cluster_name_contains_pattern_filter = f'kubernetes.cluster.name contains "{cluster_name_contains_pattern}"'
+        if event_filters != "":
+            event_filters += "and" + cluster_name_contains_pattern_filter
+        else:
+            event_filters += cluster_name_contains_pattern_filter
+    if event_filters == "":
+        raise Exception("!!!No filters provided. Must include rule name or cluster name pattern!!!")
+    # events_url_with_filters = url + \
+    #     f'from={start_time}&to={end_time}&filter={rule_filter}and{cluster_name_contains_pattern_filter}'
     events_url_with_filters = url + \
-        f'from={start_time}&to={end_time}&filter={rule_filter}and{cluster_name_contains_pattern_filter}'
+        f'from={start_time}&to={end_time}&filter={event_filters}'
     print("request url: ", events_url_with_filters)
     try:
         print("Retrieving events...")
