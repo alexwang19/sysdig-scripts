@@ -22,3 +22,9 @@ python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xx
 1. Verify api token is correct
 2. Verify sysdig base url is correct
 3. Verify rule name is correct (no syntax checking)
+
+# JQ to parse data
+
+```
+cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "PolicyName: " + .name + " " + "RuleName: " + .content.ruleName'
+```
