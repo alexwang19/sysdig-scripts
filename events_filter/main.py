@@ -74,9 +74,7 @@ def retrieve_events(auth_header, url, ssl_verification, end_time, start_time, ru
         else:
             event_filters += image_repo_name_contains_pattern_filter
     if event_filters == "":
-        raise Exception("!!!No filters provided. Must include rule name or cluster name pattern!!!")
-    # events_url_with_filters = url + \
-    #     f'from={start_time}&to={end_time}&filter={rule_filter}and{cluster_name_contains_pattern_filter}'
+        raise Exception("!!!No filters provided. Must include one filter!!!")
     events_url_with_filters = url + \
         f'from={start_time}&to={end_time}&filter={event_filters}'
     print("request url: ", events_url_with_filters)
