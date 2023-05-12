@@ -14,7 +14,7 @@ pip3 install -r requirements.txt
 2. You can run script with command below:
 
 ```
-python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --rule-names "DB program spawned process,Container Run as Root User" --cluster-name-contains-pattern test --time-duration 10 --output-file test.json
+python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --rule-names "DB program spawned process,Container Run as Root User" --cluster-name-contains-pattern test --image-repo-name-contains-pattern nginx --time-duration 10 --output-file test.json
 ```
 
 # Troubleshooting

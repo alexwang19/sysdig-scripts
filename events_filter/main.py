@@ -15,6 +15,8 @@ def retrieve_set_sysdig_params():
                         type=str, help='list of rule names comma delimited. e.g. "my rule one,my rule two, mynewrule"')
     parser.add_argument("--cluster-name-contains-pattern", dest='cluster_name_contains_pattern',
                         type=str, help="pattern to match on for k8s cluster. e.g. mycluster123")
+    parser.add_argument("--image-repo-name-contains-pattern", dest='image_repo_name_contains_pattern',
+                        type=str, help="pattern to match on for image repo name")
     parser.add_argument("--time-duration", dest='time_duration',
                         type=int, help="enter int value for time duration to use for events. e.g 10 for 10minutes", required=True)
     parser.add_argument("--output-file", dest='output_file',
@@ -46,7 +48,7 @@ def retrieve_time_duration(time_duration):
     return end_time, start_timestamp
 
 
-def retrieve_events(auth_header, url, ssl_verification, end_time, start_time, rule_names, cluster_name_contains_pattern):
+def retrieve_events(auth_header, url, ssl_verification, end_time, start_time, rule_names, cluster_name_contains_pattern, image_repo_name_contains_pattern):
     event_filters = ""
     if rule_names is not None:
         rules_list = rule_names.split(',')
@@ -65,6 +67,12 @@ def retrieve_events(auth_header, url, ssl_verification, end_time, start_time, ru
             event_filters += "and" + cluster_name_contains_pattern_filter
         else:
             event_filters += cluster_name_contains_pattern_filter
+    if image_repo_name_contains_pattern is not None:
+        image_repo_name_contains_pattern_filter = f'container.image.repo contains "{image_repo_name_contains_pattern}"'
+        if event_filters != "":
+            event_filters += "and" + image_repo_name_contains_pattern_filter
+        else:
+            event_filters += image_repo_name_contains_pattern_filter
     if event_filters == "":
         raise Exception("!!!No filters provided. Must include rule name or cluster name pattern!!!")
     # events_url_with_filters = url + \
@@ -102,7 +110,7 @@ def main():
         ssl_verification = True
     end_time, start_time = retrieve_time_duration(args.time_duration)
     events_data = retrieve_events(auth_header, url, ssl_verification, end_time,
-                    start_time, args.rule_names, args.cluster_name_contains_pattern)
+                                  start_time, args.rule_names, args.cluster_name_contains_pattern, args.image_repo_name_contains_pattern)
     write_to_output_file(events_data, args.output_file)
 
 
