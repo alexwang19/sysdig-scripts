@@ -26,5 +26,5 @@ python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xx
 # JQ to parse data
 
 ```
-cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "PolicyName: " + .name + " " + "RuleName: " + .content.ruleName'
+cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "K8S ClusterName: " + .labels."kubernetes.cluster.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
 ```
