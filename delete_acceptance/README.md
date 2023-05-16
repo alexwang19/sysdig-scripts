@@ -24,7 +24,7 @@ CVE-1236-1236,2023-03-25,RiskOwned,test,global
 4. You can run script with command below:
 
 ```
-python3 vulnerability_exception.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --acceptance-files-directory /my/test/path/ --ssl-verification enabled
+python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx --acceptance-files-directory /my/dir/containing/csv/files
 ```
 
 # Troubleshooting
