@@ -57,7 +57,7 @@ def delete_risk_acceptance(auth_header, url, ssl_verification, directory_path):
                                                     print("Delete risk acceptance: ", risk_exception)
                                                     response = requests.delete(
                                                         url_with_risk_def, json=risk_exception, headers=auth_header)
-                                                    print(response.status_code)
+                                                    response.raise_for_status()
                                                 except requests.exceptions.HTTPError as e:
                                                     print(" ERROR ".center(80, "-"))
                                                     print("Failed deleting risk acceptance", e)
