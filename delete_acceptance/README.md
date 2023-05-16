@@ -19,7 +19,6 @@ pip3 install -r requirements.txt
 Vulnerability,ExpirationDate,Reason,Description,ContextType,ContextValue
 CVE-1234-1234,2023-03-25,RiskAvoided,my new note,imageName,nginx:1.14
 CVE-1235-1235,2023-03-25,RiskTransferred,custom note being added,imageName,myrepo/newimage
-CVE-1236-1236,2023-03-25,RiskOwned,test,global
 ```
 4. You can run script with command below:
 

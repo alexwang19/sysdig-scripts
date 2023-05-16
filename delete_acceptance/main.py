@@ -26,8 +26,6 @@ def retrieve_sysdig_header_url(args):
 
 def delete_risk_acceptance(auth_header, url, ssl_verification, directory_path):
     existing_risk_exceptions = []
-    existing_cve_exceptions = []
-    cves_to_delete = []
     response = requests.get(url, headers=auth_header, params={'limit': 100})
     existing_risk_exceptions.append((response.json()['data']))
 
@@ -47,22 +45,31 @@ def delete_risk_acceptance(auth_header, url, ssl_verification, directory_path):
                         print(f'Column names are {", ".join(row)}')
                         line_count += 1
                     else:
-                        cves_to_delete.append(row[0])
-    for existing_risk_exception in existing_risk_exceptions:
-        for risk_exception in existing_risk_exception:
-            url2 = url + "/" + \
-                risk_exception['riskAcceptanceDefinitionID']
-            if risk_exception['entityValue'] in cves_to_delete:
-                print(
-                    "delete risk acceptance for CVE: ", row[0])
-                response = requests.delete(
-                    url2, json=risk_exception, headers=auth_header)
-                print(response.status_code)
-                if line_count % 70 == 0:
-                    print("Sleep 20 secs after ",
-                            line_count, " requests...")
-                    time.sleep(20)
-                line_count += 1
+                        for existing_risk_exception in existing_risk_exceptions:
+                            for risk_exception in existing_risk_exception:
+                                url_with_risk_def = url + "/" + \
+                                    risk_exception['riskAcceptanceDefinitionID']
+                                if risk_exception['entityValue'] == row[0]:
+                                    if risk_exception['context']:
+                                        if risk_exception['context'][0]['contextType'] == row[4]:
+                                            if risk_exception['context'][0]['contextValue'] == row[5]:
+                                                try:
+                                                    print("Delete risk acceptance: ", risk_exception)
+                                                    response = requests.delete(
+                                                        url_with_risk_def, json=risk_exception, headers=auth_header)
+                                                    print(response.status_code)
+                                                except requests.exceptions.HTTPError as e:
+                                                    print(" ERROR ".center(80, "-"))
+                                                    print("Failed deleting risk acceptance", e)
+                                                    print(response.text)
+                                                except requests.exceptions.RequestException as e:
+                                                    print(" ERROR ".center(80, "-"))
+                                                    print(e, "Failed deleting risk acceptance")
+                                                if line_count % 70 == 0:
+                                                    print("Sleep 20 secs after ",
+                                                            line_count, " requests...")
+                                                    time.sleep(20)
+                                                line_count += 1
     print("Finished deletion")
 
 def main():

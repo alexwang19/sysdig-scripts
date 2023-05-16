@@ -1,0 +1,2 @@
+Vulnerability,ExpirationDate,Reason,Description,ContextType,ContextValue
+CVE-2018-25012,2023-05-31,Custom,Testing,imageName,sysdiglabs/security-playground
