@@ -27,4 +27,4 @@ cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "Tim
 
 1. Verify api token is correct
 2. Verify sysdig base url is correct
-3. Verify rule name is correct (no syntax checking)
+3. Verify filters are correct (no syntax checking)
