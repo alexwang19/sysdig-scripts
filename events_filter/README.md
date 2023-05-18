@@ -14,7 +14,13 @@ pip3 install -r requirements.txt
 2. You can run script with command below:
 
 ```
-python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --rule-names "DB program spawned process,Container Run as Root User" --cluster-name-contains-pattern test --image-repo-name-contains-pattern nginx --time-duration 10 --output-file test.json
+python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --rule-names "DB program spawned process,Container Run as Root User" --cluster-name-contains-patterns test,eks,new --image-repo-name-contains-patterns docker.io/library/tomcat,test --time-duration 10 --output-file test.json
+```
+
+# JQ to parse data
+
+```
+cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
 ```
 
 # Troubleshooting
@@ -22,9 +28,3 @@ python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xx
 1. Verify api token is correct
 2. Verify sysdig base url is correct
 3. Verify rule name is correct (no syntax checking)
-
-# JQ to parse data
-
-```
-cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "K8S ClusterName: " + .labels."kubernetes.cluster.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
-```
