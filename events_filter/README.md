@@ -13,8 +13,16 @@ pip3 install -r requirements.txt
 ```
 2. You can run script with command below:
 
+Cluster name pattern filter
+
 ```
 python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --rule-names "DB program spawned process,Container Run as Root User" --cluster-name-contains-pattern test --image-repo-name-contains-pattern docker.io/library/tomcat --time-duration 10 --output-file test.json
+```
+
+Cluster names list filter
+
+```
+python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --rule-names "DB program spawned process,Container Run as Root User" --cluster-names test-cluster --image-repo-name-contains-pattern docker.io/library/tomcat --time-duration 10 --output-file test.json
 ```
 
 # JQ to parse data

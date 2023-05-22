@@ -17,6 +17,8 @@ def retrieve_set_sysdig_params():
                         type=str, help='list of rule names comma delimited. e.g. "my rule one,my rule two, mynewrule"')
     parser.add_argument("--cluster-name-contains-pattern", dest='cluster_name_contains_pattern',
                         type=str, help="pattern to match on for k8s cluster.")
+    parser.add_argument("--cluster-names", dest='cluster_names',
+                        type=str, help="List of cluster names to retrieve events for.")
     parser.add_argument("--image-repo-name-contains-pattern", dest='image_repo_name_contains_pattern',
                         type=str, help="pattern to match on for image repo name")
     parser.add_argument("--time-duration", dest='time_duration',
@@ -60,7 +62,8 @@ def convert_to_current_timezone_epoch(cursor_response_data):
     epoch_time = int(datetime_obj_local.timestamp())
     return epoch_time
 
-def define_filters(rule_names, cluster_name_contains_pattern, image_repo_name_contains_pattern):
+
+def define_filters(rule_names, cluster_name_contains_pattern, cluster_names, image_repo_name_contains_pattern):
     event_filters = ""
     if rule_names is not None:
         rules_list = rule_names.split(',')
@@ -73,6 +76,17 @@ def define_filters(rule_names, cluster_name_contains_pattern, image_repo_name_co
             rules = rules[:-1]
             rule_filter = f'ruleName in ({rules})'
         event_filters += rule_filter
+    if cluster_names is not None:
+        cluster_names_list = cluster_names.split(',')
+        if len(cluster_names_list) == 1:
+            cluster_names_filter = f'kubernetes.cluster.name="{cluster_names}"'
+        else:
+            clusters = ""
+            for cluster in cluster_names_list:
+                clusters += f'"{cluster}",'
+            clusters = clusters[:-1]
+            cluster_names_filter = f'kubernetes.cluster.name in ({clusters})'
+        event_filters += cluster_names_filter
     if cluster_name_contains_pattern is not None:
         # cluster_name_contains_patterns_list = cluster_name_contains_patterns.split(',')
         # for cluster_name_contains_pattern in cluster_name_contains_patterns_list:
@@ -152,7 +166,7 @@ def main():
         ssl_verification = True
     end_time, start_time = retrieve_time_duration(args.time_duration)
     event_filters = define_filters(
-        args.rule_names, args.cluster_name_contains_pattern, args.image_repo_name_contains_pattern)
+        args.rule_names, args.cluster_name_contains_pattern, args.cluster_names, args.image_repo_name_contains_pattern)
     events_data = retrieve_events_with_filters(auth_header, url, ssl_verification, end_time,
                                   start_time, event_filters)
     write_to_output_file(events_data, args.output_file)
