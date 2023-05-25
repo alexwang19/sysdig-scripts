@@ -33,7 +33,7 @@ python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xx
 * --cluster-names - list of clusters to filter events on ex: "mycluster1,cluster2"
 * --time-duration - time duration in minutes ex: 10
 
-NOTE: Use cluster-name-contains-pattern or cluster-names to avoid conflict
+NOTE: Use cluster-name-contains-pattern OR cluster-names to avoid conflict
 
 # JQ to parse data
 
