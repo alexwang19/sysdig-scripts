@@ -25,6 +25,16 @@ Cluster names list filter
 python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --rule-names "DB program spawned process,Container Run as Root User" --cluster-names test-cluster --image-repo-name-contains-pattern docker.io/library/tomcat --time-duration 10 --output-file test.json
 ```
 
+Parameters
+
+--rule-names - list of rule names to filter events ex: "DB program spawned process,Container Run as Root User"
+--cluster-name-contains-pattern - cluster name pattern to filter events on ex: clusterid1234
+--image-repo-name-contains-pattern - image repo name pattern to filter events on ex: tomcat
+--cluster-names - list of clusters to filter events on ex: "mycluster1,cluster2"
+--time-duration - time duration in minutes ex: 10
+
+NOTE: Use cluster-name-contains-pattern or cluster-names to avoid conflict
+
 # JQ to parse data
 
 ```
