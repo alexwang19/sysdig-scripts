@@ -88,16 +88,12 @@ def define_filters(rule_names, cluster_name_contains_pattern, cluster_names, ima
             cluster_names_filter = f'kubernetes.cluster.name in ({clusters})'
         event_filters += cluster_names_filter
     if cluster_name_contains_pattern is not None:
-        # cluster_name_contains_patterns_list = cluster_name_contains_patterns.split(',')
-        # for cluster_name_contains_pattern in cluster_name_contains_patterns_list:
         cluster_name_contains_pattern_filter = f'kubernetes.cluster.name contains "{cluster_name_contains_pattern}"'
         if event_filters != "":
             event_filters += "and" + cluster_name_contains_pattern_filter
         else:
             event_filters += cluster_name_contains_pattern_filter
     if image_repo_name_contains_pattern is not None:
-        # image_repo_name_contains_patterns_list = image_repo_name_contains_patterns.split(',')
-        # for image_repo_name_contains_pattern in image_repo_name_contains_patterns_list:
         image_repo_name_contains_pattern_filter = f'container.image.repo contains "{image_repo_name_contains_pattern}"'
         if event_filters != "":
             event_filters += "and" + image_repo_name_contains_pattern_filter
