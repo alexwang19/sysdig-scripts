@@ -32,13 +32,15 @@ python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xx
 * --image-repo-name-contains-pattern - image repo name pattern to filter events on ex: tomcat
 * --cluster-names - list of clusters to filter events on ex: "mycluster1,cluster2"
 * --time-duration - time duration in minutes ex: 10
+* --ssl-verification - disabled by default, pass "enabled" to enable
+* --output-file - output file for filtered events. ex: test.json
 
 NOTE: Use cluster-name-contains-pattern OR cluster-names to avoid conflict
 
 # JQ to parse data
 
 ```
-cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
+cat test2.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
 ```
 
 # Troubleshooting
