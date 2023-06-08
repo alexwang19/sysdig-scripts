@@ -5,6 +5,15 @@ import json
 from datetime import datetime
 import pytz
 
+def set_proxy_config(proxies):
+    http_proxy = proxies
+    https_proxy = proxies
+    proxies = {
+        "http": http_proxy,
+        "https": https_proxy,
+    }
+    return proxies
+
 def retrieve_set_sysdig_params():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-url", dest='sysdig_base_url', type=str,
@@ -13,6 +22,8 @@ def retrieve_set_sysdig_params():
                         type=str, help="Sysdig API Token", required=True)
     parser.add_argument("--ssl-verification", dest='ssl_verification',
                         type=str, help="enabled or disabled for values. Default is disabled.")
+    parser.add_argument("--proxies", dest='proxies',
+                        type=str, help="list of proxies")
     parser.add_argument("--rule-names", dest='rule_names',
                         type=str, help='list of rule names comma delimited. e.g. "my rule one,my rule two, mynewrule"')
     parser.add_argument("--cluster-name-contains-pattern", dest='cluster_name_contains_pattern',
@@ -103,7 +114,8 @@ def define_filters(rule_names, cluster_name_contains_pattern, cluster_names, ima
         raise Exception("!!!No filters provided. Must include one filter!!!")
     return event_filters
 
-def retrieve_events_with_filters(auth_header, url, ssl_verification, end_time, start_time, event_filters):
+
+def retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, end_time, start_time, event_filters):
     events_url_with_filters = url + \
         f'from={start_time}&to={end_time}&filter={event_filters}'
     print("request url: ", events_url_with_filters)
@@ -111,7 +123,7 @@ def retrieve_events_with_filters(auth_header, url, ssl_verification, end_time, s
         print("Retrieving events...")
         print("url with filters : ", events_url_with_filters)
         response = requests.get(events_url_with_filters, headers=auth_header,
-                                verify=ssl_verification)
+                                verify=ssl_verification, proxies=proxies)
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         print(" ERROR ".center(80, "-"))
@@ -128,7 +140,7 @@ def retrieve_events_with_filters(auth_header, url, ssl_verification, end_time, s
                 f'cursor={prev_page}&filter={event_filters}&limit=100'
             try:
                 cursor_response = requests.get(events_url_with_cursor, headers=auth_header,
-                                        verify=ssl_verification)
+                                               verify=ssl_verification, proxies=proxies)
                 cursor_response.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 print(" ERROR ".center(80, "-"))
@@ -160,10 +172,15 @@ def main():
     ssl_verification = False
     if (args.ssl_verification == "enabled"):
         ssl_verification = True
+    proxies = ""
+    if (args.proxies != ""):
+        print("Setting proxy...")
+        proxies = set_proxy_config(args.proxies)
     end_time, start_time = retrieve_time_duration(args.time_duration)
+    print("Setting events filters...")
     event_filters = define_filters(
         args.rule_names, args.cluster_name_contains_pattern, args.cluster_names, args.image_repo_name_contains_pattern)
-    events_data = retrieve_events_with_filters(auth_header, url, ssl_verification, end_time,
+    events_data = retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, end_time,
                                   start_time, event_filters)
     write_to_output_file(events_data, args.output_file)
     print("Completed!")
