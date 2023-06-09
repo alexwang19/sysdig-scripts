@@ -122,8 +122,12 @@ def retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, en
     try:
         print("Retrieving events...")
         print("url with filters : ", events_url_with_filters)
-        response = requests.get(events_url_with_filters, headers=auth_header,
-                                verify=ssl_verification, proxies=proxies)
+        if proxies != "":
+            response = requests.get(events_url_with_filters, headers=auth_header,
+                                    verify=ssl_verification, proxies=proxies)
+        else:
+            response = requests.get(events_url_with_filters, headers=auth_header,
+                                   verify=ssl_verification)
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         print(" ERROR ".center(80, "-"))
@@ -139,8 +143,12 @@ def retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, en
             events_url_with_cursor = url + \
                 f'cursor={prev_page}&filter={event_filters}&limit=100'
             try:
-                cursor_response = requests.get(events_url_with_cursor, headers=auth_header,
-                                               verify=ssl_verification, proxies=proxies)
+                if proxies != "":
+                    cursor_response = requests.get(events_url_with_cursor, headers=auth_header,
+                                                verify=ssl_verification, proxies=proxies)
+                else:
+                    cursor_response = requests.get(events_url_with_cursor, headers=auth_header,
+                                               verify=ssl_verification)
                 cursor_response.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 print(" ERROR ".center(80, "-"))
