@@ -56,7 +56,7 @@ cat test2.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "Ti
 
 To further parse data on multiple kubernetes name patterns, you can add multiple contains("<pattern>") with an OR in between each one. Example below:
 ```
-cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | select(.labels."kubernetes.cluster.name" | contains("test") or contains("myclusterpattern")) | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
+cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | select(.labels."kubernetes.cluster.name" | contains("test") or contains("myclusterpattern1") or contains("myclusterpattern2")) | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
 ```
 
 
