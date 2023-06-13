@@ -4,6 +4,9 @@ import time
 import json
 from datetime import datetime
 import pytz
+import re
+import csv
+
 
 def set_proxy_config(proxies):
     http_proxy = proxies
@@ -39,6 +42,25 @@ def retrieve_set_sysdig_params():
     return parser.parse_args()
 
 
+def check_word_in_string(string):
+    pattern = r'\bin\b'
+    if re.search(pattern, string):
+        return True
+    else:
+        return False
+
+def separate_rules_containing_in(rules):
+    rule_names_containing_in = []
+    rule_names_not_containing_in = []
+    if (rules is not None):
+        rule_names = rules.split(',')
+        for rule in rule_names:
+            if check_word_in_string(rule):
+                rule_names_containing_in.append(rule)
+            else:
+                rule_names_not_containing_in.append(rule)
+    return rule_names_containing_in, rule_names_not_containing_in
+
 def retrieve_sysdig_header_url(args):
     auth_token = args.sysdig_api_token
     auth_header = {'Authorization': 'Bearer ' + auth_token}
@@ -64,7 +86,13 @@ def retrieve_time_duration(time_duration):
 def convert_to_current_timezone_epoch(cursor_response_data):
     len_index = len(cursor_response_data)
     timestamp_from_data_set = cursor_response_data[len_index-1]['timestamp']
-    truncated_timestamp = timestamp_from_data_set[:26] +"Z"
+    print("this is timestamp from data set, ", timestamp_from_data_set)
+    print("lenght of timestamp from data set, ", len(timestamp_from_data_set))
+    if len(timestamp_from_data_set) >= 26:
+        truncated_timestamp = timestamp_from_data_set[:26] +"Z"
+    else:
+        truncated_timestamp = timestamp_from_data_set
+    print("this is truncated timestamp, ", truncated_timestamp)
     datetime_obj = datetime.strptime(
         truncated_timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
     local_timezone = pytz.timezone('US/Central')
@@ -76,13 +104,12 @@ def convert_to_current_timezone_epoch(cursor_response_data):
 
 def define_filters(rule_names, cluster_name_contains_pattern, cluster_names, image_repo_name_contains_pattern):
     event_filters = ""
-    if rule_names is not None:
-        rules_list = rule_names.split(',')
-        if len(rules_list) == 1:
-            rule_filter = f'ruleName="{rule_names}"'
+    if len(rule_names) > 0:
+        if len(rule_names) == 1:
+            rule_filter = f'ruleName="{rule_names[0]}"'
         else:
             rules = ""
-            for rule in rules_list:
+            for rule in rule_names:
                 rules += f'"{rule}",'
             rules = rules[:-1]
             rule_filter = f'ruleName in ({rules})'
@@ -110,14 +137,100 @@ def define_filters(rule_names, cluster_name_contains_pattern, cluster_names, ima
             event_filters += "and" + image_repo_name_contains_pattern_filter
         else:
             event_filters += image_repo_name_contains_pattern_filter
-    if event_filters == "":
-        raise Exception("!!!No filters provided. Must include one filter!!!")
+    # if event_filters == "":
+    #     raise Exception("!!!No filters provided. Must include one filter!!!")
     return event_filters
 
 
-def retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, end_time, start_time, event_filters):
+def define_event_filters_with_rule_names_containing_in(rule_name, cluster_name_contains_pattern, cluster_names, image_repo_name_contains_pattern):
+    event_filters = f'ruleName="{rule_name}"'
+    if cluster_names is not None:
+        cluster_names_list = cluster_names.split(',')
+        if len(cluster_names_list) == 1:
+            cluster_names_filter = f'kubernetes.cluster.name="{cluster_names}"'
+        else:
+            clusters = ""
+            for cluster in cluster_names_list:
+                clusters += f'"{cluster}",'
+            clusters = clusters[:-1]
+            cluster_names_filter = f'kubernetes.cluster.name in ({clusters})'
+        event_filters += cluster_names_filter
+    if cluster_name_contains_pattern is not None:
+        cluster_name_contains_pattern_filter = f'kubernetes.cluster.name contains "{cluster_name_contains_pattern}"'
+        if event_filters != "":
+            event_filters += "and" + cluster_name_contains_pattern_filter
+        else:
+            event_filters += cluster_name_contains_pattern_filter
+    if image_repo_name_contains_pattern is not None:
+        image_repo_name_contains_pattern_filter = f'container.image.repo contains "{image_repo_name_contains_pattern}"'
+        if event_filters != "":
+            event_filters += "and" + image_repo_name_contains_pattern_filter
+        else:
+            event_filters += image_repo_name_contains_pattern_filter
+    return event_filters
+
+def retrieve_events_with_rule_names_containing_in(auth_header, url, ssl_verification, proxies, end_time,
+                                                  start_time, event_filters):
     events_url_with_filters = url + \
-        f'from={start_time}&to={end_time}&filter={event_filters}'
+        f'from={start_time}&to={end_time}&filter={event_filters}andseverity in ("0","1","2","3")'
+    print("request url: ", events_url_with_filters)
+    try:
+        print("Retrieving events...")
+        print("url with filters : ", events_url_with_filters)
+        if proxies != "":
+            response = requests.get(events_url_with_filters, headers=auth_header,
+                                    verify=ssl_verification, proxies=proxies)
+        else:
+            response = requests.get(events_url_with_filters, headers=auth_header,
+                                    verify=ssl_verification)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        print(" ERROR ".center(80, "-"))
+        print("Failed to retrieve events", e)
+    except requests.exceptions.RequestException as e:
+        print(" ERROR ".center(80, "-"))
+        print(e, "Failed retrieving events")
+    events_data_json = json.dumps(response.json()['data'])
+    if len(response.json()['data']) == 100 and "prev" in response.json()['page']:
+        prev_page = response.json()['page']['prev']
+        loop_control = True
+        while (loop_control):
+            events_url_with_cursor = url + \
+                f'cursor={prev_page}&filter={event_filters}andseverity in ("0","1","2","3")&limit=100'
+            try:
+                if proxies != "":
+                    cursor_response = requests.get(events_url_with_cursor, headers=auth_header,
+                                                   verify=ssl_verification, proxies=proxies)
+                else:
+                    cursor_response = requests.get(events_url_with_cursor, headers=auth_header,
+                                                   verify=ssl_verification)
+                cursor_response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                print(" ERROR ".center(80, "-"))
+                print("Failed to retrieve cursor events", e)
+            except requests.exceptions.RequestException as e:
+                print(" ERROR ".center(80, "-"))
+                print(e, "Failed retrieving cursor events")
+            if "prev" in cursor_response.json()['page']:
+                epoch_time_from_existing_data = convert_to_current_timezone_epoch(
+                    cursor_response.json()['data'])
+                if epoch_time_from_existing_data < int(start_time[:10]):
+                    print("Outside time range",
+                          epoch_time_from_existing_data, start_time[:10])
+                    loop_control = False
+                prev_page = cursor_response.json()['page']['prev']
+            else:
+                loop_control = False
+            events_data_json += json.dumps(cursor_response.json()['data'])
+    return events_data_json
+
+def retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, end_time, start_time, event_filters):
+    if event_filters == "":
+        events_url_with_filters = url + \
+            f'from={start_time}&to={end_time}&filter=severity in ("0","1","2","3")'
+    else:
+        events_url_with_filters = url + \
+            f'from={start_time}&to={end_time}&filter={event_filters}andseverity in ("0","1","2","3")'
     print("request url: ", events_url_with_filters)
     try:
         print("Retrieving events...")
@@ -140,8 +253,13 @@ def retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, en
         prev_page = response.json()['page']['prev']
         loop_control = True
         while (loop_control):
-            events_url_with_cursor = url + \
-                f'cursor={prev_page}&filter={event_filters}&limit=100'
+            if event_filters == "":
+                events_url_with_cursor = url + \
+                    f'cursor={prev_page}&filter=severity in ("0","1","2","3")&limit=100'
+            else:
+                events_url_with_cursor = url + \
+                    f'cursor={prev_page}&filter={event_filters}andseverity in ("0","1","2","3")&limit=100'
+            print("cursor event filters: ", events_url_with_cursor)
             try:
                 if proxies != "":
                     cursor_response = requests.get(events_url_with_cursor, headers=auth_header,
@@ -181,14 +299,21 @@ def main():
     if (args.ssl_verification == "enabled"):
         ssl_verification = True
     proxies = ""
-    if (args.proxies != ""):
+    if (args.proxies is not None):
         print("Setting proxy...")
         proxies = set_proxy_config(args.proxies)
     end_time, start_time = retrieve_time_duration(args.time_duration)
-    print("Setting events filters...")
+    rule_names_containing_in, rule_names_not_containing_in = separate_rules_containing_in(args.rule_names)
+    events_data = ""
+    if len(rule_names_containing_in) > 0:
+        for rule_name in rule_names_containing_in:
+            event_filters_containing_in = define_event_filters_with_rule_names_containing_in(
+                rule_name, args.cluster_name_contains_pattern, args.cluster_names, args.image_repo_name_contains_pattern)
+            events_data += retrieve_events_with_rule_names_containing_in(auth_header, url, ssl_verification, proxies, end_time,
+                                                                         start_time, event_filters_containing_in)
     event_filters = define_filters(
-        args.rule_names, args.cluster_name_contains_pattern, args.cluster_names, args.image_repo_name_contains_pattern)
-    events_data = retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, end_time,
+        rule_names_not_containing_in, args.cluster_name_contains_pattern, args.cluster_names, args.image_repo_name_contains_pattern)
+    events_data += retrieve_events_with_filters(auth_header, url, ssl_verification, proxies, end_time,
                                   start_time, event_filters)
     write_to_output_file(events_data, args.output_file)
     print("Completed!")

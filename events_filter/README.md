@@ -13,6 +13,14 @@ pip3 install -r requirements.txt
 ```
 2. You can run script with command below:
 
+NOTE: Only events with HIGH severity are retrieved
+
+No filters applied, this retrieve all events defined in a certain time period
+
+```
+python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx  --time-duration 60 --output-file test.json
+```
+
 Cluster name pattern filter
 
 ```
@@ -24,6 +32,8 @@ Cluster names list filter
 ```
 python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx --rule-names "DB program spawned process,Container Run as Root User" --cluster-names test-cluster --image-repo-name-contains-pattern docker.io/library/tomcat --time-duration 10 --output-file test.json
 ```
+
+
 
 ### Parameters
 
@@ -42,6 +52,12 @@ NOTE: Use cluster-name-contains-pattern OR cluster-names to avoid conflict
 ```
 cat test2.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
 ```
+
+To further parse data on multiple kubernetes name patterns, you can add multiple contains("<pattern>") with an OR in between each one. Example below:
+```
+cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | select(.labels."kubernetes.cluster.name" | contains("test") or contains("myclusterpattern")) | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
+```
+
 
 # Troubleshooting
 
