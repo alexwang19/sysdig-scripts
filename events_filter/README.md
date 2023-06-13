@@ -51,7 +51,7 @@ NOTE: Use cluster-name-contains-pattern OR cluster-names to avoid conflict
 # JQ to parse data
 
 ```
-cat test2.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
+cat test.json| jq '.[] | select(.actions | .[]?.type=="container killed") | "Timestamp: " + .timestamp + " K8S ClusterName: " + .labels."kubernetes.cluster.name" + " K8s Namespace: " + .labels."kubernetes.namespace.name" + " ImageRepo: " + .content.fields."container.image.repository" + " PolicyName: " + .name + " " + "RuleName: " + .content.ruleName + " ACTION: " + (.actions | .[].type)'
 ```
 
 To further parse data on multiple kubernetes name patterns, you can add multiple contains("<pattern>") with an OR in between each one. Example below:
