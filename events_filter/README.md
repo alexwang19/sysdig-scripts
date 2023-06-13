@@ -18,7 +18,7 @@ NOTE: Only events with HIGH severity are retrieved
 No filters applied, this retrieve all events defined in a certain time period
 
 ```
-python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx  --time-duration 60 --output-file test.json
+python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xxxxx-xxxxxxx  --time-duration 10 --output-file test.json
 ```
 
 Cluster name pattern filter
