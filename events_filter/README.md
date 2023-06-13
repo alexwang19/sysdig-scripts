@@ -44,6 +44,7 @@ python3 main.py --base-url us2.app.sysdig.com --api-token xxxxxx-xxxxx-xxxxxx-xx
 * --time-duration - time duration in minutes ex: 10
 * --ssl-verification - disabled by default, pass "enabled" to enable
 * --output-file - output file for filtered events. ex: test.json
+* --proxies - specify list of proxies to use
 
 NOTE: Use cluster-name-contains-pattern OR cluster-names to avoid conflict
 
