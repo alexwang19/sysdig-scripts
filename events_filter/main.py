@@ -86,13 +86,10 @@ def retrieve_time_duration(time_duration):
 def convert_to_current_timezone_epoch(cursor_response_data):
     len_index = len(cursor_response_data)
     timestamp_from_data_set = cursor_response_data[len_index-1]['timestamp']
-    print("this is timestamp from data set, ", timestamp_from_data_set)
-    print("lenght of timestamp from data set, ", len(timestamp_from_data_set))
     if len(timestamp_from_data_set) >= 26:
         truncated_timestamp = timestamp_from_data_set[:26] +"Z"
     else:
         truncated_timestamp = timestamp_from_data_set
-    print("this is truncated timestamp, ", truncated_timestamp)
     datetime_obj = datetime.strptime(
         truncated_timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
     local_timezone = pytz.timezone('US/Central')
