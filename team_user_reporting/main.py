@@ -43,8 +43,10 @@ def main():
             for user_role in team['userRoles']:
                 user_id = user_role['userId']
                 user_name = user_role['userName']
-
-                csv_writer.writerow([team_name, user_id, user_name])
+                
+                # Only capture non-admin users
+                if user_role['admin'] == False:
+                    csv_writer.writerow([team_name, user_id, user_name])
 
     print(f"CSV file '{args.csv_file_name}' has been created.")
 
